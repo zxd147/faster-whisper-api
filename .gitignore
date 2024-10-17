@@ -13,3 +13,15 @@ venv/
 # Ignore IDE, Editor Files
 .idea/
 .vscode/
+
+output.txt
+audio
+requirements.txt.bak
+temp
+input_audio
+logs
+models
+tests
+
+faster_whisper/assets/*
+
