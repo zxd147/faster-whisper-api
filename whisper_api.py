@@ -119,7 +119,7 @@ async def get_audio(audio_file, request_data):
                 mime_type = match.group(1)
                 audio_base64 = match.group(2)
                 # 从MIME类型中提取音频格式
-                audio_format = mimetypes.guess_extension(mime_type) or audio_format
+                audio_format = mimetypes.guess_extension(mime_type, strict=False) or audio_format
         # 解码 base64 编码的音频
         audio_bytes = base64.b64decode(audio_base64)
         audio_contents = BytesIO(audio_bytes)
