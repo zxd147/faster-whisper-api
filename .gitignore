@@ -16,7 +16,6 @@ venv/
 
 output.txt
 audio
-requirements.txt.bak
 temp
 input_audio
 logs

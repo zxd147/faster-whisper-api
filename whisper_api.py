@@ -189,6 +189,7 @@ async def index():
     return HTMLResponse(status_code=200, content=service_name)
 
 
+@whisper_app.get("/http_check")
 @whisper_app.get("/health")
 async def health():
     """Health check."""
