@@ -23,3 +23,4 @@ python-multipart
 numba
 more-itertools
 tiktoken
+loguru==0.7.2
