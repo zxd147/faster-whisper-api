@@ -18,7 +18,7 @@ output.txt
 audio
 temp
 input_audio
-logs
+logs/*
 models
 tests
 
