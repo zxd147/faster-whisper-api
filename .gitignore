@@ -19,6 +19,7 @@ audio
 temp
 input_audio
 logs/*
+!logs/.gitkeep
 models
 tests
 
