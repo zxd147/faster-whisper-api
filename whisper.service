@@ -1,0 +1,17 @@
+[Unit]
+Description=Fast Whisper Service
+After=network.target
+
+[Service]
+Type=forking
+User=zxd
+WorkingDirectory=/home/zxd/code/ASR/faster-whisper
+ExecStart=/bin/bash /home/zxd/code/ASR/faster-whisper/start_service.sh
+ExecStop=/bin/bash /home/zxd/code/ASR/faster-whisper/stop_service.sh
+Restart=always
+RestartSec=10
+StandardOutput=file:/var/log/faster-whisper/whisper.log
+StandardError=file:/var/log/faster-whisper/whisper.log
+
+[Install]
+WantedBy=multi-user.target
