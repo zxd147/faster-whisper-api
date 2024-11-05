@@ -183,8 +183,8 @@ class TranscribeResponse(BaseModel):
 @whisper_app.get("/")
 async def index():
     service_name = """
-        <html> <head> <title>whisper_service_api</title> </head>
-            <body style="display: flex; justify-content: center;"> <h1>whisper_service_api</h1></body> </html>
+        <html> <head> <title>whisper_service</title> </head>
+            <body style="display: flex; justify-content: center;"> <h1>whisper_service</h1></body> </html>
         """
     return HTMLResponse(status_code=200, content=service_name)
 
