@@ -32,3 +32,4 @@ EXPOSE 8001
 
 # 容器启动时默认执行的命令
 CMD ["python", "whisper_api.py"]
+
