@@ -18,9 +18,6 @@ WORKDIR /app/faster-whisper
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=all
 
-# 映射端口
-EXPOSE 8001
-
 # 克隆并直接重命名为 faster-whisper
 RUN cd /app && git clone https://github.com/zxd147/faster-whisper-api.git faster-whisper
 
@@ -29,6 +26,9 @@ COPY ./faster_whisper/ ./faster_whisper/
 COPY ./models/faster-whisper-large-v2/ ./models/faster-whisper-large-v2/
 
 RUN pip install -r ./requirements.txt
+
+# 映射端口
+EXPOSE 8001
 
 # 容器启动时默认执行的命令
 CMD ["python", "whisper_api.py"]
