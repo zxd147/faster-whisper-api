@@ -1,5 +1,5 @@
 # 使用现有的基础镜像
-FROM init/init_images:ubuntu22.04-cuda11.8-python3.9
+FROM python:ubuntu22.04-cuda11.8-python3.9
 
 # 设置代理 (确保网络环境)
 # ENV all_proxy=http://192.168.0.64:7890
