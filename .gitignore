@@ -24,4 +24,4 @@ models
 tests
 
 faster_whisper/assets/*
-
+Dockerfile

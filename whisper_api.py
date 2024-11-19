@@ -16,8 +16,11 @@ from typing import Optional, Union
 import torch
 import uvicorn
 from fastapi import FastAPI, UploadFile, File, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as st_Request
 
 from faster_whisper import WhisperModel
 from utils.log_utils import logger
@@ -149,16 +152,6 @@ def filter_keywords(text):
         return text, code, messages
 
 
-# whisper_logger = configure_logging()
-whisper_logger = logger
-model_dir = "models/faster-whisper-large-v2"
-default_audio_dir = './audio'
-model = WhisperModel(model_dir, device="cuda", num_workers=4, compute_type="float16")
-whisper_app = FastAPI()
-# 创建一个线程池
-executor = ThreadPoolExecutor(max_workers=10)
-
-
 class TranscribeRequest(BaseModel):
     sno: Union[int, str] = Field(default_factory=lambda: int(time.time() * 100))  # 动态生成时间戳
     uid: Union[int, str] = 'admin'
@@ -178,6 +171,39 @@ class TranscribeResponse(BaseModel):
     messages: str
     sno: Optional[Union[int, str]] = None
     text: Optional[str] = None
+
+
+class BasicAuthMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, secret_key: str):
+        super().__init__(app)
+        self.required_credentials = secret_key
+
+    async def dispatch(self, request: st_Request, call_next):
+        authorization: str = request.headers.get('Authorization')
+        if authorization and authorization.startswith('Bearer '):
+            provided_credentials = authorization.split(' ')[1]
+            # 比较提供的令牌和所需的令牌
+            if provided_credentials == self.required_credentials:
+                return await call_next(request)
+        # 返回一个带有自定义消息的JSON响应
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "Unauthorized: Invalid or missing credentials"},
+            headers={'WWW-Authenticate': 'Bearer realm="Secure Area"'}
+        )
+
+
+# whisper_logger = configure_logging()
+whisper_logger = logger
+model_dir = "models/faster-whisper-large-v2"
+default_audio_dir = './audio'
+model = WhisperModel(model_dir, device="cuda", num_workers=4, compute_type="float16")
+whisper_app = FastAPI()
+secret_key = os.getenv('WHISPER-SECRET-KEY', 'sk-whisper')
+whisper_app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=['*'], allow_headers=['*'], )
+whisper_app.add_middleware(BasicAuthMiddleware, secret_key=secret_key)
+# 创建一个线程池
+executor = ThreadPoolExecutor(max_workers=10)
 
 
 @whisper_app.get("/")
