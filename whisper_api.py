@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request as st_Request
+from starlette.requests import Request as StarletteRequest
 
 from faster_whisper import WhisperModel
 from utils.log_utils import logger
@@ -178,7 +178,7 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.required_credentials = secret_key
 
-    async def dispatch(self, request: st_Request, call_next):
+    async def dispatch(self, request: StarletteRequest, call_next):
         authorization: str = request.headers.get('Authorization')
         if authorization and authorization.startswith('Bearer '):
             provided_credentials = authorization.split(' ')[1]
@@ -201,7 +201,7 @@ model = WhisperModel(model_dir, device="cuda", num_workers=4, compute_type="floa
 whisper_app = FastAPI()
 secret_key = os.getenv('WHISPER-SECRET-KEY', 'sk-whisper')
 whisper_app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=['*'], allow_headers=['*'], )
-whisper_app.add_middleware(BasicAuthMiddleware, secret_key=secret_key)
+# whisper_app.add_middleware(BasicAuthMiddleware, secret_key=secret_key)
 # 创建一个线程池
 executor = ThreadPoolExecutor(max_workers=10)
 
