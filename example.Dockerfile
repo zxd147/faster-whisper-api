@@ -17,6 +17,8 @@ WORKDIR /app/faster-whisper
 # 设置 GPU 使用
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=all
+# 设置访问密钥
+ENV WHISPER-SECRET-KEY=sk-whisper
 
 # 克隆并直接重命名为 faster-whisper
 RUN cd /app && git clone https://github.com/zxd147/faster-whisper-api.git faster-whisper
