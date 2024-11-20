@@ -2,7 +2,7 @@
 FROM base/python:ubuntu22.04-cuda11.8-python3.9
 
 # 设置代理 (确保网络环境)
-ENV all_proxy=http://192.168.0.64:7890
+#ENV all_proxy=http://192.168.0.64:7890
 # 设置 GPU 使用
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=all
