@@ -6,7 +6,8 @@ FROM base/python:ubuntu22.04-cuda11.8-python3.9
 
 # 更新并安装必要的依赖
 RUN apt-get update \
-    # 在这里安装你需要的依赖，比如 git、python 等
+    # 在这里安装你需要的依赖，比如 git、python 等 \
+    && apt-get install libcudnn8 \
     && apt-get install git -y \
     && apt-get install ffmpeg -y \
     && apt-get clean
