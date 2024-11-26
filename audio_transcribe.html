@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音识别</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+            background-color: #fafafa;
+        }
+        .file-upload:hover {
+            border-color: #5cb85c;
+        }
+        .file-upload input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-upload-label {
+            font-size: 18px;
+            color: #555;
+            font-weight: bold;
+        }
+        button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        .file-name {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+            font-weight: bold;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .input-group label {
+            font-weight: bold;
+            color: #555;
+        }
+        .input-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .blue-text {
+            color: #007bff;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .json-container {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .toggle-button {
+            margin-top: 10px;
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>语音识别</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label class="file-upload">
+                <span class="file-upload-label">选择音频文件</span>
+                <input type="file" id="audioFile" name="audio_file" accept="audio/*" required onchange="displayFileName()">
+            </label>
+            <div class="input-group">
+                <label for="initialPrompt">初始提示:</label>
+                <input type="text" id="initialPrompt" name="initial_prompt" placeholder="请输入提示词">
+            </div>
+            <div class="input-group">
+                <label for="language">语言 (可选):</label>
+                <input type="text" id="language" name="language" placeholder="请输入语言 (如：zh, en)">
+            </div>
+            <button type="submit">上传并识别</button>
+        </form>
+        <div class="file-name" id="fileName"></div>
+        <div id="outputArea" style="margin-top: 20px; font-size: 18px; font-weight: bold;"></div>  <!-- 用于显示结果 -->
+    </div>
+    <script>
+        // 获取 outputArea 元素
+        const outputArea = document.getElementById('outputArea');
+
+        function displayFileName() {
+            const audioFile = document.getElementById('audioFile').files[0]; // 获取选择的文件
+            const fileNameDisplay = document.getElementById('fileName');
+            if (audioFile) {
+                fileNameDisplay.textContent = `已选择文件: ${audioFile.name}`; // 显示文件名
+            } else {
+                fileNameDisplay.textContent = ''; // 清空文件名
+            }
+        }
+
+        document.getElementById('uploadForm').onsubmit = async function(event) {
+            event.preventDefault(); // 阻止表单默认提交
+            const formData = new FormData(this); // 创建 FormData 对象
+            const cleanedFormData = new FormData();  // 创建空表单
+
+            // 重新添加非空字段
+            for (const [key, value] of formData.entries()) {
+                const valueStr = String(value).trim();
+                if (valueStr) {
+                    cleanedFormData.append(key, value); // 只添加非空字段
+                }
+            }
+
+            const response = await fetch('/v1/asr', { method: 'POST', body: cleanedFormData });
+            if (response.ok) {
+                const jsonData = await response.json();
+                outputArea.innerHTML = ''; // 清空输出区域
+
+                // 提取 text 字段
+                const text = jsonData.text || '未找到 text';
+                // 显示 text 字段
+                const textDiv = document.createElement('div');
+                textDiv.textContent = text;
+                textDiv.style.cursor = 'pointer';
+                textDiv.style.color = '#007bff';  // 设置为蓝色，避免蓝底和下划线
+                textDiv.style.fontWeight = 'bold';  // 设置加粗
+                textDiv.style.fontSize = '16px';  // 设置适中的字体大小
+                textDiv.style.marginTop = '10px';  // 添加一点顶部间距
+                outputArea.appendChild(textDiv);
+
+                // 添加展开按钮
+                const toggleButton = document.createElement('button');
+                toggleButton.textContent = '展开';
+                toggleButton.style.marginTop = '10px';
+                toggleButton.style.padding = '5px';
+                toggleButton.style.cursor = 'pointer';
+
+                // 添加完整 JSON 的容器
+                const fullJsonDiv = document.createElement('div');
+                fullJsonDiv.style.display = 'none'; // 默认隐藏完整 JSON
+                fullJsonDiv.style.marginTop = '10px';
+                fullJsonDiv.style.padding = '10px';
+                fullJsonDiv.style.border = '1px solid #ddd';
+                fullJsonDiv.style.borderRadius = '5px';
+                fullJsonDiv.style.backgroundColor = '#f9f9f9';
+                fullJsonDiv.style.whiteSpace = 'pre-wrap'; // 保留换行格式
+                fullJsonDiv.style.maxWidth = '100%'; // 设置最大宽度为 100%
+                fullJsonDiv.style.overflowX = 'auto'; // 当内容超出时显示水平滚动条
+                fullJsonDiv.style.overflowY = 'auto'; // 如果内容垂直超出，也会显示滚动条
+                fullJsonDiv.style.maxHeight = '400px'; // 设置最大高度，防止溢出
+                fullJsonDiv.textContent = JSON.stringify(jsonData, null, 2);
+
+                // 切换显示/隐藏逻辑
+                toggleButton.onclick = function (event) {
+                    event.preventDefault(); // 阻止默认行为
+                    // event.stopPropagation(); // 阻止事件冒泡
+                    // 确保只有一个事件触发，切换显示状态
+                    const isHidden = fullJsonDiv.style.display === 'none';
+                    fullJsonDiv.style.display = isHidden ? 'block' : 'none';
+                    toggleButton.textContent = isHidden ? '收起' : '展开';
+                };
+                outputArea.appendChild(toggleButton);
+                outputArea.appendChild(fullJsonDiv);
+            } else {
+                console.error('语音识别失败:', response.statusText);
+                alert('语音识别失败，请重试。');
+            }
+        };
+    </script>
+</body>
+</html>

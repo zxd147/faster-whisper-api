@@ -193,6 +193,8 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
         )
 
 
+# 创建一个线程池
+executor = ThreadPoolExecutor(max_workers=10)
 # whisper_logger = configure_logging()
 whisper_logger = logger
 model_dir = "models/faster-whisper-large-v2"
@@ -202,8 +204,6 @@ whisper_app = FastAPI()
 secret_key = os.getenv('WHISPER-SECRET-KEY', 'sk-whisper')
 whisper_app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=['*'], allow_headers=['*'], )
 whisper_app.add_middleware(BasicAuthMiddleware, secret_key=secret_key)
-# 创建一个线程池
-executor = ThreadPoolExecutor(max_workers=10)
 
 
 @whisper_app.get("/")
@@ -284,16 +284,24 @@ async def transcribe_audio(
         logs = f"Transcribe audio  error: {error_message}\n"
         whisper_logger.error(logs)
         return JSONResponse(status_code=400, content=error_message.model_dump())
-    except Exception as e:
-        error_message = TranscribeResponse(
-            code=-1,
-            messages=f"Exception: {str(e)} "
-        )
-        logs = f"Transcribe audio  error: {error_message}\n"
-        whisper_logger.error(logs)
-        return JSONResponse(status_code=500, content=error_message.model_dump())
+    # except Exception as e:
+    #     error_message = TranscribeResponse(
+    #         code=-1,
+    #         messages=f"Exception: {str(e)} "
+    #     )
+    #     logs = f"Transcribe audio  error: {error_message}\n"
+    #     whisper_logger.error(logs)
+    #     return JSONResponse(status_code=500, content=error_message.model_dump())
+
+
+@whisper_app.get('/audio/transcribe', response_class=HTMLResponse)
+async def convert_audio(
+        request: Request,
+):
+    with open("./audio_transcribe.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 
 if __name__ == "__main__":
     init_app()
-    uvicorn.run(whisper_app, host="0.0.0.0", port=8001)
+    uvicorn.run(whisper_app, host="0.0.0.0", port=8002)
