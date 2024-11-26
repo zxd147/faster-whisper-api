@@ -304,4 +304,4 @@ async def convert_audio(
 
 if __name__ == "__main__":
     init_app()
-    uvicorn.run(whisper_app, host="0.0.0.0", port=8002)
+    uvicorn.run(whisper_app, host="0.0.0.0", port=8001)
