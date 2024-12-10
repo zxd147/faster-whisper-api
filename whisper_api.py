@@ -37,7 +37,7 @@ def torch_gc():
         torch.cuda.ipc_collect()  # 收集CUDA内存碎片
 
 
-def init_app():
+async def init_app():
     if torch.cuda.is_available():
         log = f'本次加载模型的设备为GPU: {torch.cuda.get_device_name(0)}'
     else:
@@ -134,13 +134,14 @@ async def get_audio(audio_file, request_data):
     return audio_info, audio_contents
 
 
-def filter_keywords(text):
+def filter_keywords(text, initial_prompt):
     # 定义关键词列表
-    keywords = ["社群", "社区", "赞助", "订阅", "关注", "平台", "精英", "字幕", "点赞", "栏目", "谢谢观看",
+    keywords = ["社群", "社区", "赞助", "订阅", "关注", "精英", "字幕", "点赞", "栏目", "谢谢观看",
                 "感谢观看", "工作室", "业务联系"]
     # 检查文本中是否包含任何关键词
-    if any(keyword in text for keyword in keywords):
+    if any(keyword in text for keyword in keywords) or text==initial_prompt:
         text = ""
+    if text == "":
         code = 1
         messages = "Warning: Transcribe result is empty due to filtered keywords!"
         # 如果包含，返回空字符串
@@ -225,6 +226,8 @@ async def health():
     return JSONResponse(status_code=200, content=health_data)
 
 
+@whisper_app.post("/v1/audio/transcriptions")
+@whisper_app.post("/v1/audio/recognition")
 @whisper_app.post("/v1/asr")
 async def transcribe_audio(
         request: Request,
@@ -266,7 +269,7 @@ async def transcribe_audio(
         # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         # logs = f'[{timestamp}]\n{text}'
         whisper_logger.info(logs)
-        text, code, messages = filter_keywords(text)
+        text, code, messages = filter_keywords(text, initial_prompt)
         results = TranscribeResponse(
             code=code,
             sno=sno,
@@ -303,5 +306,5 @@ async def convert_audio(
 
 
 if __name__ == "__main__":
-    init_app()
+    asyncio.run(init_app())
     uvicorn.run(whisper_app, host="0.0.0.0", port=8001)
