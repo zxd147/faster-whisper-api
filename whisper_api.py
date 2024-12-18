@@ -206,7 +206,7 @@ default_audio_dir = './audio'
 model = WhisperModel(model_dir, device="cuda", num_workers=4, compute_type="float16")
 whisper_app = FastAPI()
 secret_key = os.getenv('WHISPER-SECRET-KEY', 'sk-whisper')
-# whisper_app.add_middleware(BasicAuthMiddleware, secret_key=secret_key)
+whisper_app.add_middleware(BasicAuthMiddleware, secret_key=secret_key)
 whisper_app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=['*'], allow_headers=['*'], )
 
 
