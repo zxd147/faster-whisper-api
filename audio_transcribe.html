@@ -124,10 +124,14 @@
         <form id="uploadForm" enctype="multipart/form-data">
             <label class="file-upload">
                 <span class="file-upload-label">选择音频文件</span>
-                <input type="file" id="audioFile" name="audio_file" accept="audio/*" required onchange="displayFileName()">
+                <input type="file" id="audioFile" name="audio_file" accept="*/*" required onchange="displayFileName()">
             </label>
             <div class="input-group">
-                <label for="initialPrompt">初始提示:</label>
+                <label for="audioPath">音频路径 (可选, 和音频文件"audioFile"二选一):</label>
+                <input type="text" id="audioPath" name="audio_path" placeholder="请输入音频路径">
+            </div>
+            <div class="input-group">
+                <label for="initialPrompt">热词 (可选):</label>
                 <input type="text" id="initialPrompt" name="initial_prompt" placeholder="请输入提示词">
             </div>
             <div class="input-group">
@@ -144,10 +148,14 @@
         const outputArea = document.getElementById('outputArea');
 
         function displayFileName() {
+            // 获取音频文件和路径
             const audioFile = document.getElementById('audioFile').files[0]; // 获取选择的文件
+            const audioPath = document.getElementById('audioPath').value.trim();
             const fileNameDisplay = document.getElementById('fileName');
             if (audioFile) {
                 fileNameDisplay.textContent = `已选择文件: ${audioFile.name}`; // 显示文件名
+            } else if (audioPath) {
+                fileNameDisplay.textContent = `使用音频路径: ${audioPath}`; // 显示路径
             } else {
                 fileNameDisplay.textContent = ''; // 清空文件名
             }
@@ -157,6 +165,16 @@
             event.preventDefault(); // 阻止表单默认提交
             const formData = new FormData(this); // 创建 FormData 对象
             const cleanedFormData = new FormData();  // 创建空表单
+
+            // 获取音频路径（如果有的话）
+            const audioPath = document.getElementById('audioPath').value.trim();
+            if (audioPath) {
+                // 如果有音频路径，清除 audioFile 的值
+                formData.delete('audio_file');
+                console.log('There exists an audioPath, audio_file has been deleted from formData');
+            } else {
+                console.log('audioPath is not defined, no changes made to formData');
+            }
 
             // 重新添加非空字段
             for (const [key, value] of formData.entries()) {
@@ -182,6 +200,26 @@
                 textDiv.style.fontSize = '16px';  // 设置适中的字体大小
                 textDiv.style.marginTop = '10px';  // 添加一点顶部间距
                 outputArea.appendChild(textDiv);
+
+                // 复制按钮
+                const copyButton = document.createElement('button');
+                copyButton.textContent = '复制文本';
+                copyButton.style.marginTop = '10px';
+                copyButton.style.padding = '5px';
+                copyButton.style.cursor = 'pointer';
+
+                // 复制文本功能
+                copyButton.onclick = function() {
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            alert('文本已复制到剪贴板');
+                        })
+                        .catch((err) => {
+                            console.error('复制失败:', err);
+                            alert('复制失败，请重试');
+                        });
+                };
+                outputArea.appendChild(copyButton);
 
                 // 添加展开按钮
                 const toggleButton = document.createElement('button');

@@ -110,7 +110,8 @@ async def get_audio(audio_file, request_data):
             #     audio_contents = f.read()  # 读取文件内容
             audio_contents = audio_path
             audio_extension = os.path.splitext(audio_path)[1] or 'null'  # 获取文件后缀，例如 ".mp3"
-            size = len(audio_contents)
+            # size = len(audio_contents)
+            size = "unknown"
             audio_info = f"File type: file_path, Format: {audio_extension}, Size: {size} bytes."
         else:
             raise FileNotFoundError(f"File not found: {audio_path}.")
@@ -136,14 +137,16 @@ async def get_audio(audio_file, request_data):
 
 def filter_keywords(text, initial_prompt):
     # 定义关键词列表
+    messages = ''
     keywords = ["社群", "社区", "赞助", "订阅", "关注", "精英", "字幕", "点赞", "栏目", "谢谢观看",
                 "感谢观看", "工作室", "业务联系"]
     # 检查文本中是否包含任何关键词
-    if any(keyword in text for keyword in keywords) or text==initial_prompt:
+    if any(keyword in text for keyword in keywords) or text == initial_prompt:
+        messages = f"Warning: Transcribe result is empty due to filtered keywords! origin text is: \n{text}" + messages
         text = ""
     if text == "":
         code = 1
-        messages = "Warning: Transcribe result is empty due to filtered keywords!"
+        messages = "Transcribe audio failed!" + messages
         # 如果包含，返回空字符串
         return text, code, messages
     else:
@@ -157,7 +160,7 @@ class TranscribeRequest(BaseModel):
     sno: Union[int, str] = Field(default_factory=lambda: int(time.time() * 100))  # 动态生成时间戳
     uid: Union[int, str] = 'admin'
     language: str = 'zh'  # 默认语言 "zh"
-    initial_prompt: str = '你是劲童，这是简体中文的句子。'  # 初始提示，中文句子
+    initial_prompt: str = '你好，这是简体中文的句子。'  # 初始提示，中文句子
     # initial_prompt: str = '你是劲童，这是 such as 简体中文的句子 and English.'  # 初始提示，中文句子
     # initial_prompt: str = '什么是龋齿，牙周炎，智齿？'  # 初始提示，中文句子
     audio_format: str = ".wav"  # 默认值 ".wav"
@@ -203,8 +206,8 @@ default_audio_dir = './audio'
 model = WhisperModel(model_dir, device="cuda", num_workers=4, compute_type="float16")
 whisper_app = FastAPI()
 secret_key = os.getenv('WHISPER-SECRET-KEY', 'sk-whisper')
+# whisper_app.add_middleware(BasicAuthMiddleware, secret_key=secret_key)
 whisper_app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_credentials=True, allow_methods=['*'], allow_headers=['*'], )
-whisper_app.add_middleware(BasicAuthMiddleware, secret_key=secret_key)
 
 
 @whisper_app.get("/")
